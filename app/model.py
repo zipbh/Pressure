@@ -1,4 +1,4 @@
-from typing import Optional, Set, List
+from typing import Optional, List
 
 from uuid import uuid4
 
@@ -23,49 +23,20 @@ def get_id():
     return str(uuid4())
 
 
-class Reports(DataBaseModel):
-    report_id: str = PrimaryKey(default=get_id)
-    generated_date: datetime = datetime.now()
-    scheduled_next_report: Optional[datetime]
-    responsible_engineer: Partner
-    report_requester: Client
-    info_payload: Json
-    is_signed: StrictBool = False
-    signed_file_id: Optional[str]
-    signature_date: Optional[datetime]
-    partner_notes: Optional[constr(max_length=600)]
-    client_notes: Optional[constr(max_length=600)]
+class Login(DataBaseModel):
+    username: constr(strip_whitespace=True, to_lower=True,
+                     max_length=int(
+                         getenv('USERNAME_MAX_SIZE'))) = PrimaryKey()
+    hash_kdf: constr(min_length=97, max_length=97)
+    email_verified: StrictBool = False
+    login_is_blocked: StrictBool = False
 
-
-class Persona(DataBaseModel):
-    identification: str = PrimaryKey()
-    first_name: str
-    middle_name: Optional[str]
-    last_name: str
-    login: Login
-    address: Address
-    organization: Optional['Organization']
-    contacts: Contacts
-    notes: Optional[constr(max_length=600)]
-
-
-class Partner(Persona):
-    partner_score: List[Optional['Score']] = []
-    signature_api_key: Optional[str]
-
-
-class Client(Persona):
-    client_score: List[Optional['Score']] = []
-
-
-class Organization(DataBaseModel):
-    organization_id: str = PrimaryKey(default=get_id)
-    business_name: str
-    trade_name: str
-    identification: str
-    address: Address
-    contacts: Contacts
-    notes: Optional[constr(max_length=600)]
+    @validator('username')
+    def username_cant_have_space(cls, value: str) -> str:
+        """Username can't have empty space"""
+        if ' ' in value:
+            raise ValueError('Address can\'t contain empty space')
+        return value
 
 
 class Address(DataBaseModel):
@@ -87,16 +58,6 @@ class Address(DataBaseModel):
             raise ValueError('Address must contain empty space')
         return value
 
-    @validator('address')
-    def address_invalid_characters(cls, value: str) -> str:
-        """ Just letters and numbers are permitted """
-        invalid_characters: Set[str] = {'\'\"@#$%&*(){}[]!£¢§=+\\|?/'}
-        for _ in invalid_characters:
-            if _ not in value:
-                continue
-            raise ValueError('Just letters and numbers are permitted')
-        return value
-
     @validator('second_address')
     def second_address_need_space(cls, value: str) -> str:
         """Address must contain a space """
@@ -104,18 +65,8 @@ class Address(DataBaseModel):
             raise ValueError('Address must contain empty space')
         return value
 
-    @validator('second_address')
-    def second_address_invalid_characters(cls, value: str) -> str:
-        """ Just letters and numbers are permitted """
-        invalid_characters: Set[str] = {'\'\"@#$%&*(){}[]!£¢§=+\\|?/'}
-        for _ in invalid_characters:
-            if _ not in value:
-                continue
-            raise ValueError('Just letters and numbers are permitted')
-        return value
 
-
-class Contacts:
+class Contacts(DataBaseModel):
     contact_id: str = PrimaryKey(default=get_id)
     phone: constr(min_length=11, max_length=11)
     secondary_phone: Optional[constr(min_length=11, max_length=11)]
@@ -134,16 +85,54 @@ class Contacts:
             raise ValueError(e)
 
 
-class Login:
-    username: constr(strip_whitespace=True, to_lower=True,
-                     max_length=int(
-                         getenv('USERNAME_MAX_SIZE'))) = PrimaryKey()
-    hash_kdf: constr(min_length=97, max_length=97)
-    email_verified: StrictBool = False
-    login_is_blocked: StrictBool = False
+class Persona(DataBaseModel):
+    identification: str = PrimaryKey()
+    first_name: str
+    middle_name: Optional[str]
+    last_name: str
+    login: Login
+    address: Address
+    organization: Optional['Organization']
+    contacts: Contacts
+    notes: Optional[constr(max_length=600)]
 
 
-class Score:
+class Partner(Persona):
+    partner_scores: List[Optional['Score']] = []
+    signature_api_key: Optional[str]
+
+
+class Client(Persona):
+    client_scores: List[Optional['Score']] = []
+
+
+class Organization(DataBaseModel):
+    organization_id: str = PrimaryKey(default=get_id)
+    business_name: str
+    trade_name: str
+    identification: str
+    address: Address
+    contacts: Contacts
+    notes: Optional[constr(max_length=600)]
+
+
+class Reports(DataBaseModel):
+    report_id: str = PrimaryKey(default=get_id)
+    generated_date: datetime = datetime.now()
+    scheduled_next_report: Optional[datetime]
+    responsible_engineer: Partner
+    report_requester: Client
+    info_payload: Json
+    is_signed: StrictBool = False
+    signed_file_id: Optional[str]
+    signature_date: Optional[datetime]
+    partner_notes: Optional[constr(max_length=600)]
+    client_notes: Optional[constr(max_length=600)]
+
+
+class Score(DataBaseModel):
+    score_date: datetime = datetime.now()
+    report_id: Reports
     score_id: str = PrimaryKey(default=get_id)
     score_value: confloat(ge=0.0, le=5.0)
 

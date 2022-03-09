@@ -1,8 +1,8 @@
-from pydbantic import Database
+from pydbantic import Database  # type: ignore
 
 
 async def setup_database(database_uri, tables):
-    return Database.create(
+    return await Database.create(
         database_uri,
         tables=tables
     )
