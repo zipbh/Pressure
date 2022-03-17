@@ -5,4 +5,4 @@ login = APIRouter()
 
 @login.post('/')
 async def root():
-    pass
+    return {"hello": "world"}

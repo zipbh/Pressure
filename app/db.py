@@ -1,6 +1,6 @@
 from pydbantic import Database, DataBaseModel  # type: ignore
 
-from model import (Address, Contacts, Login, Organization,
+from app.model import (Address, Contacts, Login, Organization,
                    Partner, Persona, Reports)  # type: ignore
 
 from os import getenv
