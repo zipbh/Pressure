@@ -4,19 +4,11 @@ from uuid import uuid4
 
 from datetime import datetime
 
-from os import getenv
-
 from pydbantic import DataBaseModel, PrimaryKey  # type: ignore
 
-from pydantic import (EmailStr, Json, HttpUrl, constr, StrictBool,
-                      confloat, validator)
+from pydantic import (EmailStr, Json, HttpUrl, StrictBool,validator)
 
 from email_validator import validate_email, EmailNotValidError  # type: ignore
-
-from dotenv import load_dotenv
-
-
-load_dotenv()
 
 
 def get_id():
@@ -24,10 +16,8 @@ def get_id():
 
 
 class Login(DataBaseModel):
-    username: constr(strip_whitespace=True, to_lower=True,
-                     max_length=int(
-                         getenv('USERNAME_MAX_SIZE'))) = PrimaryKey()
-    hash_kdf: constr(min_length=97, max_length=97)
+    username: str = PrimaryKey()
+    hash_kdf: str
     email_verified: StrictBool = False
     login_is_blocked: StrictBool = False
 
@@ -41,15 +31,15 @@ class Login(DataBaseModel):
 
 class Address(DataBaseModel):
     address_id: str = PrimaryKey(default=get_id)
-    address: constr(max_length=60)
-    second_address: Optional[constr(max_length=60)]
-    city: constr(max_length=20)
-    postal_code: constr(min_length=8, max_length=8)
-    state: constr(max_length=20)
-    country: constr(max_length=30)
-    country_iso_code: Optional[constr(min_length=3, max_length=3)]
-    country_unsd_code: Optional[constr(min_length=3, max_length=3)]
-    notes: Optional[constr(max_length=600)]
+    address: str
+    second_address: Optional[str]
+    city: str
+    postal_code: str
+    state: str
+    country: str
+    country_iso_code: Optional[str]
+    country_unsd_code: Optional[str]
+    notes: Optional[str]
 
     @validator('address')
     def address_need_space(cls, value: str) -> str:
@@ -68,12 +58,12 @@ class Address(DataBaseModel):
 
 class Contacts(DataBaseModel):
     contact_id: str = PrimaryKey(default=get_id)
-    phone: constr(min_length=11, max_length=11)
-    secondary_phone: Optional[constr(min_length=11, max_length=11)]
-    e_mail: constr(strip_whitespace=True, to_lower=True, max_length=30)
+    phone: str
+    secondary_phone: Optional[str]
+    e_mail: str
     secondary_email: Optional[str]
     website: HttpUrl
-    notes: Optional[constr(max_length=600)]
+    notes: Optional[str]
 
     @validator('e_mail')
     def email_must_be_valid(cls, value: EmailStr) -> EmailStr:
@@ -94,16 +84,11 @@ class Persona(DataBaseModel):
     address: Address
     organization: Optional['Organization']
     contacts: Contacts
-    notes: Optional[constr(max_length=600)]
+    notes: Optional[str]
 
 
 class Partner(Persona):
-    partner_scores: List[Optional['Score']] = []
     signature_api_key: Optional[str]
-
-
-class Client(Persona):
-    client_scores: List[Optional['Score']] = []
 
 
 class Organization(DataBaseModel):
@@ -113,7 +98,7 @@ class Organization(DataBaseModel):
     identification: str
     address: Address
     contacts: Contacts
-    notes: Optional[constr(max_length=600)]
+    notes: Optional[str]
 
 
 class Reports(DataBaseModel):
@@ -121,20 +106,15 @@ class Reports(DataBaseModel):
     generated_date: datetime = datetime.now()
     scheduled_next_report: Optional[datetime]
     responsible_engineer: Partner
-    report_requester: Client
-    info_payload: Json
+    report_requester: Persona
+    client_score: Optional[float]
+    partner_score: Optional[float]
+    info_payload: str
     is_signed: StrictBool = False
     signed_file_id: Optional[str]
     signature_date: Optional[datetime]
-    partner_notes: Optional[constr(max_length=600)]
-    client_notes: Optional[constr(max_length=600)]
-
-
-class Score(DataBaseModel):
-    score_date: datetime = datetime.now()
-    report_id: Reports
-    score_id: str = PrimaryKey(default=get_id)
-    score_value: confloat(ge=0.0, le=5.0)
+    partner_notes: Optional[str]
+    client_notes: Optional[str]
 
 
 def tables_list():
