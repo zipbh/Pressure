@@ -4,7 +4,7 @@ from fastapi import Request
 
 from fastapi.templating import Jinja2Templates
 
-templates = Jinja2Templates(directory='app/templates')
+templates = Jinja2Templates(directory='app/v1/templates')
 general_pages_router = APIRouter()
 
 

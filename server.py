@@ -1,6 +1,6 @@
 import uvicorn  # type: ignore
 
-from app import create_app
+from app.v1 import create_app
 
 from os import getenv
 
