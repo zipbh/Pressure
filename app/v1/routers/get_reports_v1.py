@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-create_report = APIRouter()
+get_reports_v1 = APIRouter()
 
 
-@create_report.post('/')
+@get_reports_v1.get('/')
 async def root():
     return {"hello": "world"}
