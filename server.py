@@ -2,16 +2,12 @@ import uvicorn  # type: ignore
 
 from app import create_app
 
-from os import getenv
-
-from dotenv import load_dotenv
+from app.config import settings
 
 
-load_dotenv()
-
-port = int(getenv('PORT'))
-host = getenv('HOST')
-reload = bool(getenv('RELOAD'))
+port = settings.PORT
+host = settings.HOST
+reload = settings.RELOAD
 
 if __name__ == '__main__':
     uvicorn.run(create_app, host=host, port=port, reload=False)
